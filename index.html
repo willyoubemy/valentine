@@ -26,8 +26,8 @@
             background-image: radial-gradient(#ffccd5 2px, transparent 2px);
             background-size: 30px 30px;
             font-family: 'Poppins', sans-serif;
-            overflow: hidden; /* Prevents scrollbars when button moves */
-            touch-action: manipulation; /* Improves mobile touch behavior */
+            overflow: hidden; 
+            touch-action: manipulation; 
         }
 
         .container {
@@ -41,6 +41,7 @@
             position: relative;
             border: 2px solid white;
             z-index: 10;
+            transition: all 0.3s ease; 
         }
 
         h1 {
@@ -59,12 +60,16 @@
 
         .gif-container {
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* Adds space between multiple images */
         }
         
         .gif-container img {
             width: 150px;
             border-radius: 10px;
-            pointer-events: none; /* Prevents long-press saving on mobile */
+            pointer-events: none; 
         }
 
         .buttons {
@@ -72,8 +77,9 @@
             gap: 15px;
             justify-content: center;
             align-items: center;
-            height: 60px; 
+            min-height: 60px; 
             position: relative;
+            flex-wrap: wrap; 
         }
 
         button {
@@ -82,11 +88,11 @@
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.2s ease; 
             font-family: 'Poppins', sans-serif;
             font-weight: 600;
-            user-select: none; /* Prevents text highlighting on double tap */
-            -webkit-tap-highlight-color: transparent; /* Removes mobile tap flash */
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent; 
         }
 
         .yes-btn {
@@ -107,7 +113,6 @@
             z-index: 1;
         }
 
-        /* Success Message State */
         .success-message {
             display: none;
         }
@@ -118,7 +123,6 @@
             color: var(--primary-color);
         }
 
-        /* Confetti Animation */
         .heart {
             position: fixed;
             top: -10vh;
@@ -135,7 +139,6 @@
             }
         }
 
-        /* MOBILE RESPONSIVE TWEAKS */
         @media (max-width: 480px) {
             .container {
                 padding: 2rem 1rem;
@@ -144,10 +147,6 @@
                 font-size: 2.5rem;
             }
             p {
-                font-size: 1rem;
-            }
-            button {
-                padding: 10px 24px;
                 font-size: 1rem;
             }
         }
@@ -164,50 +163,55 @@
         <p>It would make me the happiest person in the world! 🌹</p>
 
         <div class="buttons">
-            <button class="yes-btn" onclick="acceptLove()">YES!</button>
+            <button class="yes-btn" id="yesBtn" onclick="acceptLove()">YES!</button>
             <button class="no-btn" id="noBtn">No</button>
         </div>
     </div>
 
     <div class="container success-message" id="successCard">
         <div class="gif-container">
-            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3d6Z3J5bW14aG55Z3J5bW14aG55Z3J5bW14aG55Z3J5bW14aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUQM/giphy.gif" alt="Happy Cat">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3d6Z3J5bW14aG55Z3J5bW14aG55Z3J5bW14aG55Z3J5bW14aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/MDJ9IbxxvDUQM/giphy.gif" alt="Happy Dog">
+            
+            <img src="./couple.png" alt="Custom Valentine Image" id="customImg" onerror="this.style.display='none'">
         </div>
         <h2>YAAAY! ❤️</h2>
         <p>I knew you'd say yes! Can't wait for our date!</p>
+        
+        <audio id="successSound" src="https://www.soundjay.com/misc/sounds/magic-chime-01.mp3"></audio>
     </div>
 
     <script>
         /* JAVASCRIPT LOGIC */
         const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const successSound = document.getElementById('successSound');
+        
+        let yesFontSize = 1.1; 
 
         function moveButton() {
-            // Get viewport dimensions
             const btnRect = noBtn.getBoundingClientRect();
-            
-            // Keep button safely inside the screen bounds
             const maxX = window.innerWidth - btnRect.width - 20;
             const maxY = window.innerHeight - btnRect.height - 20;
 
-            // Generate random coordinates (minimum 10px from edges)
             const randomX = Math.max(10, Math.random() * maxX);
             const randomY = Math.max(10, Math.random() * maxY);
 
-            // Apply new position
             noBtn.style.position = 'fixed'; 
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
+
+            yesFontSize += 0.5; 
+            yesBtn.style.fontSize = `${yesFontSize}rem`;
+            yesBtn.style.padding = `${yesFontSize * 10}px ${yesFontSize * 20}px`; 
         }
 
-        // Add event listeners for both desktop (mouseover) and mobile (touchstart)
         noBtn.addEventListener('mouseover', moveButton);
         
         noBtn.addEventListener('touchstart', function(e) {
-            e.preventDefault(); // Prevents the tap from registering as a click
+            e.preventDefault(); 
             moveButton();
         });
 
-        // Fallback click just in case
         noBtn.addEventListener('click', function(e) {
             e.preventDefault();
             moveButton();
@@ -216,11 +220,17 @@
         function acceptLove() {
             document.getElementById('mainCard').style.display = 'none';
             document.getElementById('successCard').style.display = 'block';
+            
+            // Play the audio!
+            successSound.play().catch(error => {
+                console.log("Audio playback failed (browsers sometimes block autoplay):", error);
+            });
+            
             createHearts();
         }
 
         function createHearts() {
-            const emojis = ['❤️', '💖', '🌹', '🥰', '💕'];
+            const emojis = ['❤️', '💖', '🌹', '🥰', '🐾']; // Added a paw print!
             
             for (let i = 0; i < 50; i++) {
                 setTimeout(() => {
