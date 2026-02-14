@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Be My Valentine?</title>
     <style>
         /* CSS STYLES */
@@ -27,15 +27,16 @@
             background-size: 30px 30px;
             font-family: 'Poppins', sans-serif;
             overflow: hidden; /* Prevents scrollbars when button moves */
+            touch-action: manipulation; /* Improves mobile touch behavior */
         }
 
         .container {
             text-align: center;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 3rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem 2rem;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(255, 77, 109, 0.2);
-            max-width: 90%;
+            max-width: 85%;
             width: 400px;
             position: relative;
             border: 2px solid white;
@@ -63,14 +64,16 @@
         .gif-container img {
             width: 150px;
             border-radius: 10px;
+            pointer-events: none; /* Prevents long-press saving on mobile */
         }
 
         .buttons {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             justify-content: center;
             align-items: center;
-            height: 60px; /* Fix height to prevent layout shift */
+            height: 60px; 
+            position: relative;
         }
 
         button {
@@ -82,24 +85,26 @@
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             font-family: 'Poppins', sans-serif;
             font-weight: 600;
+            user-select: none; /* Prevents text highlighting on double tap */
+            -webkit-tap-highlight-color: transparent; /* Removes mobile tap flash */
         }
 
         .yes-btn {
             background-color: var(--primary-color);
             color: white;
             box-shadow: 0 4px 15px rgba(255, 77, 109, 0.4);
+            z-index: 2;
         }
 
-        .yes-btn:hover {
-            transform: scale(1.1);
-            background-color: #d90429;
+        .yes-btn:active {
+            transform: scale(0.95);
         }
 
         .no-btn {
             background-color: white;
             color: var(--text-color);
             border: 2px solid var(--secondary-color);
-            position: absolute; /* Allows free movement */
+            z-index: 1;
         }
 
         /* Success Message State */
@@ -116,16 +121,34 @@
         /* Confetti Animation */
         .heart {
             position: fixed;
-            top: -1vh;
+            top: -10vh;
             font-size: 1.5rem;
             transform: translateY(0);
             animation: fall 3s linear forwards;
             z-index: 5;
+            pointer-events: none;
         }
 
         @keyframes fall {
             to {
-                transform: translateY(105vh);
+                transform: translateY(110vh);
+            }
+        }
+
+        /* MOBILE RESPONSIVE TWEAKS */
+        @media (max-width: 480px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+            h1 {
+                font-size: 2.5rem;
+            }
+            p {
+                font-size: 1rem;
+            }
+            button {
+                padding: 10px 24px;
+                font-size: 1rem;
             }
         }
     </style>
@@ -142,7 +165,7 @@
 
         <div class="buttons">
             <button class="yes-btn" onclick="acceptLove()">YES!</button>
-            <button class="no-btn" id="noBtn" onmouseover="moveButton()" onclick="moveButton()">No</button>
+            <button class="no-btn" id="noBtn">No</button>
         </div>
     </div>
 
@@ -156,59 +179,60 @@
 
     <script>
         /* JAVASCRIPT LOGIC */
-        
-        function moveButton() {
-            const noBtn = document.getElementById('noBtn');
-            const card = document.querySelector('.container');
-            
-            // Get viewport dimensions
-            const containerRect = card.getBoundingClientRect();
-            const btnRect = noBtn.getBoundingClientRect();
+        const noBtn = document.getElementById('noBtn');
 
-            // Calculate safe boundaries so button doesn't fly off screen completely
-            // We want it to stay somewhat near the card but not clickable
+        function moveButton() {
+            // Get viewport dimensions
+            const btnRect = noBtn.getBoundingClientRect();
             
+            // Keep button safely inside the screen bounds
             const maxX = window.innerWidth - btnRect.width - 20;
             const maxY = window.innerHeight - btnRect.height - 20;
 
-            const randomX = Math.random() * maxX;
-            const randomY = Math.random() * maxY;
+            // Generate random coordinates (minimum 10px from edges)
+            const randomX = Math.max(10, Math.random() * maxX);
+            const randomY = Math.max(10, Math.random() * maxY);
 
             // Apply new position
-            noBtn.style.position = 'fixed'; // Switch to fixed to break out of flex container
+            noBtn.style.position = 'fixed'; 
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
         }
 
+        // Add event listeners for both desktop (mouseover) and mobile (touchstart)
+        noBtn.addEventListener('mouseover', moveButton);
+        
+        noBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault(); // Prevents the tap from registering as a click
+            moveButton();
+        });
+
+        // Fallback click just in case
+        noBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            moveButton();
+        });
+
         function acceptLove() {
-            // Hide the question card
             document.getElementById('mainCard').style.display = 'none';
-            // Show the success card
             document.getElementById('successCard').style.display = 'block';
-            
-            // Trigger confetti
             createHearts();
         }
 
         function createHearts() {
             const emojis = ['❤️', '💖', '🌹', '🥰', '💕'];
             
-            // Create 50 falling hearts
             for (let i = 0; i < 50; i++) {
                 setTimeout(() => {
                     const heart = document.createElement('div');
                     heart.classList.add('heart');
                     heart.innerText = emojis[Math.floor(Math.random() * emojis.length)];
                     
-                    // Random horizontal position
                     heart.style.left = Math.random() * 100 + 'vw';
-                    
-                    // Random animation duration for variety
                     heart.style.animationDuration = Math.random() * 2 + 3 + 's'; 
                     
                     document.body.appendChild(heart);
 
-                    // Clean up DOM after animation
                     setTimeout(() => {
                         heart.remove();
                     }, 5000);
